@@ -21,25 +21,55 @@ const ShaderSources = {
     uniform vec3 charges[MAX_CHARGES];
     uniform int chargesCount;
     
-    void main()
+    vec4 calcPotentialColor()
     {
         // Calculate potential
         float potential = 0.0;
-        vec2 position = gl_FragCoord.xy / viewport;
     
         for (int i = 0; i < MAX_CHARGES; ++i)
         {
             if (i >= chargesCount) break;
-            potential += charges[i].z / distance(position, charges[i].xy);
+            potential += charges[i].z / distance(gl_FragCoord.xy, charges[i].xy * viewport);
         }
     
         // Do the coloring
-        float f = fract(potential * 100.0);
-        float df = fwidth(potential * 100.0);
-        float g = smoothstep(df * 1.0, df * 2.0, f);
+        float f = fract(potential * 100000.0);
+        float df = fwidth(potential * 100000.0);
+        float a = 1.0 - smoothstep(df * 2.0, df * 2.0, f);
         vec3 color = (potential > 0.0) ? vec3(1.0, 0.3, 0.3) : vec3(0.3, 0.5, 1.0);
+
+        return vec4(color, a);
+    }
+
+    vec4 calcFieldColor()
+    {
+        // Calculate field strength
+        float field = 0.0;
     
-        gl_FragColor = vec4(color, 1.0 - g);
+        for (int i = 0; i < MAX_CHARGES; ++i)
+        {
+            if (i >= chargesCount) break;
+            field += charges[i].z / dot(gl_FragCoord.xy, charges[i].xy * viewport);
+        }
+    
+        // Do the coloring
+        float f = fract(field * 100000000.0);
+        float df = fwidth(field * 100000000.0);
+        float a = 1.0 - smoothstep(df * 2.0, df * 2.0, f);
+
+        return vec4(vec3(1.0), a);
+    }
+
+    void main()
+    {
+        vec3 color = vec3(0.15);
+        vec4 potentialColor = calcPotentialColor();
+        vec4 fieldColor = calcFieldColor();
+
+        color = mix(color, potentialColor.rgb, potentialColor.a);
+        //color = mix(color, fieldColor.rgb, fieldColor.a);
+    
+        gl_FragColor = vec4(color, 1.0);
     }    
     `,
     eFieldFragSource: `
@@ -99,7 +129,7 @@ var posQueue = new ChargeQueue(maxCharges);
 
 // DEBUGGING
 posQueue.add([0.1, 0.2, 0.009]);
-posQueue.add([1.0, 0.3, 0.009]);
+posQueue.add([0.5, 0.3, 0.009]);
 
 function init() {
     if (!gl) {
