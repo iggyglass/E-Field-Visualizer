@@ -22,10 +22,10 @@ const ShaderSources = {
     uniform vec3 charges[MAX_CHARGES];
     uniform int chargesCount;
 
-    const float ARROW_TILE_SIZE = 64.0;
+    const float ARROW_TILE_SIZE = 45.0;
     const float ARROW_HEAD_ANGLE = 45.0 * PI / 180.0;
     const float ARROW_HEAD_LENGTH = ARROW_TILE_SIZE / 6.0;
-    const float ARROW_SHAFT_THICKNESS = 3.0;
+    const float ARROW_SHAFT_THICKNESS = 1.0;
 
     float distSquared(vec2 a, vec2 b)
     {
@@ -100,9 +100,10 @@ const ShaderSources = {
 
         // Do the coloring
         float f = fract(potential * 10000.0);
-        float df = fwidth(potential * 10000.0);
-        float a = 1.0 - smoothstep(df * 1.0, df * 2.0, f);
-        vec3 color = (potential > 0.0) ? vec3(1.0, 0.3, 0.3) : vec3(0.3, 0.5, 1.0);
+        float nf = fract(-potential * 10000.0);
+        float df = fwidth(potential * 7000.0);
+        float a = clamp(1.0 - smoothstep(df * 1.0, df * 2.0, f) + (1.0 - smoothstep(df * 1.0, df * 2.0, nf)), 0.0, 1.0);
+        vec3 color = (floor(potential * 10000.0 + 0.5) >= 0.0) ? vec3(1.0, 0.3, 0.3) : vec3(0.3, 0.5, 1.0);
 
         return vec4(color, a);
     }
@@ -115,7 +116,6 @@ const ShaderSources = {
 
         color = mix(color, vec3(0.5), arrowAlpha * length(calcField(gl_FragCoord.xy)));
         color = mix(color, potentialColor.rgb, potentialColor.a);
-        //color = mix(color, fieldColor.rgb, fieldColor.a);
     
         gl_FragColor = vec4(color, 1.0);
     }    
@@ -176,8 +176,10 @@ var shaderProgram = {
 var posQueue = new ChargeQueue(maxCharges);
 
 // DEBUGGING
-posQueue.add([0.5, 1.0, 0.09]);
-posQueue.add([0.9, 1.0, -0.09]);
+posQueue.add([1.0, 0.5, 0.09]);
+posQueue.add([0.5, 0.5, -0.09]);
+//posQueue.add([1.0, 0.0, 0.09]);
+//posQueue.add([1.0, 1.0, -0.09]);
 
 function init() {
     if (!gl) {
@@ -266,7 +268,7 @@ function draw() {
 
     gl.uniform3fv(shaderProgram.chargeArrayUniform, posQueue.asF32Array());
     gl.uniform1i(shaderProgram.chargeArrayLengthUniform, posQueue.length());
-    gl.uniform2fv(shaderProgram.viewportUniform, new Float32Array([window.innerWidth, window.innerHeight]));
+    gl.uniform2fv(shaderProgram.viewportUniform, new Float32Array([window.innerWidth * 2.0, window.innerHeight * 2.0]));
 
     gl.drawArrays(gl.TRIANGLES, 0, 6);
 }
