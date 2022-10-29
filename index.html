@@ -2,9 +2,22 @@
 <html>
     <head>
         <title>E-Field Visualizer</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100;400&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="styles.css">
     </head>
     <body onload="init()">
-        <canvas id="canvas" style="position:absolute;top:0px;left:0px;"></canvas>
+        <div id="input-div">
+            <label id="charge-slider-label" for="charge-slider" class="inputs">Charge: <span id="charge-value">0 C</span><br></label>
+            <input type="range" id="charge-slider" class="inputs" min="-10" max="10">
+            <br>
+            <div align="center">
+                <button class="inputs" id="reset-button">Clear</button>
+                <button class="inputs">Help</button>
+            </div>
+        </div>
+        <canvas id="gl-canvas" style="position:absolute;top:0px;left:0px;"></canvas>
         <script src="sim.js"></script>
     </body>
 </html>

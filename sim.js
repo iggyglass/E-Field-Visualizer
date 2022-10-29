@@ -26,6 +26,7 @@ const ShaderSources = {
     const float ARROW_HEAD_ANGLE = 45.0 * PI / 180.0;
     const float ARROW_HEAD_LENGTH = ARROW_TILE_SIZE / 6.0;
     const float ARROW_SHAFT_THICKNESS = 1.0;
+    const float GRID_RADIUS = 2.0;
 
     float distSquared(vec2 a, vec2 b)
     {
@@ -51,6 +52,12 @@ const ShaderSources = {
     vec2 arrowTileCenterCoord(vec2 pos)
     {
         return (floor(pos / ARROW_TILE_SIZE) + 0.5) * ARROW_TILE_SIZE;
+    }
+
+    float gridCircle(vec2 p)
+    {
+        float inside = distance(p, arrowTileCenterCoord(p)) < GRID_RADIUS ? 1.0 : 0.0;
+        return inside;
     }
 
     float arrow(vec2 p, vec2 v)
@@ -114,38 +121,42 @@ const ShaderSources = {
         vec4 potentialColor = calcPotentialColor();
         float arrowAlpha = arrow(gl_FragCoord.xy, calcField(arrowTileCenterCoord(gl_FragCoord.xy)) * ARROW_TILE_SIZE * 0.4);
 
-        color = mix(color, vec3(0.5), arrowAlpha * length(calcField(gl_FragCoord.xy)));
-        color = mix(color, potentialColor.rgb, potentialColor.a);
+        if (chargesCount > 0)
+        {
+            color = mix(color, vec3(0.5), arrowAlpha * length(calcField(gl_FragCoord.xy)));
+            color = mix(color, potentialColor.rgb, potentialColor.a);
+        }
+        else
+        {
+            color = mix(color, vec3(0.5), gridCircle(gl_FragCoord.xy) * 0.1);
+        }
     
         gl_FragColor = vec4(color, 1.0);
     }    
     `
 }
 
-class ChargeQueue {
+class ChargePool {
     index = 0;
-    array;
+    maxSize = 0;
+    array = [];
 
-    constructor(length) {
-        this.array = new Array(length);
+    constructor(maxLength) {
+        this.maxSize = maxLength;
     }
 
     add(item) {
-        this.array[this.index++] = item;
-        this.index %= this.array.length;
+        if (this.array.length == this.maxSize) this.array.pop();
+
+        this.array.unshift(item);
     }
 
     remove(index) {
-        if (index < 0 || index > this.index - 1) throw new Error(`Index ${index} out of bounds!`);
-
-        let temp = this.array[index];
-
-        this.array[index] = this.array[this.index];
-        this.array[this.index--] = temp;
+        this.array.splice(index, 1);
     }
 
     length() {
-        return this.index;
+        return this.array.length;
     }
 
     asF32Array() {
@@ -153,8 +164,11 @@ class ChargeQueue {
     }
 }
 
-const canvas = document.getElementById('canvas');
-const gl = canvas.getContext('webgl');
+const glCanvas = document.getElementById('gl-canvas');
+const gl = glCanvas.getContext('webgl');
+
+const slider = document.getElementById('charge-slider');
+const sliderValueText = document.getElementById('charge-value'); 
 
 const unitQuad = [
      1.0,  1.0,
@@ -171,17 +185,12 @@ var shaderProgram = {
     chargeArrayUniform: null,
     chargeArrayLengthUniform: null,
     viewportUniform: null
-}
+};
 
-var posQueue = new ChargeQueue(maxCharges);
-
-// DEBUGGING
-posQueue.add([1.0, 0.5, 0.09]);
-posQueue.add([0.5, 0.5, -0.09]);
-//posQueue.add([1.0, 0.0, 0.09]);
-//posQueue.add([1.0, 1.0, -0.09]);
+var posQueue = new ChargePool(maxCharges);
 
 function init() {
+    // Setup GL stuff
     if (!gl) {
         console.error('WebGL support is required to run!');
         return;
@@ -248,27 +257,63 @@ function init() {
 
     initCanvas();
 
-    document.addEventListener('resize', (_) => initCanvas());
+    // Setup events for user interaction
+    window.addEventListener('resize', initCanvas);
+    
+    glCanvas.addEventListener('click', onClick);
+    glCanvas.addEventListener('contextmenu', onClick);
+
+    slider.addEventListener('input', (_) => sliderValueText.innerHTML = `${slider.value} C`);
 }
 
 function initCanvas() {
-    canvas.width = Math.floor(window.innerWidth * window.devicePixelRatio);
-    canvas.height = Math.floor(window.innerHeight * window.devicePixelRatio);
+    glCanvas.width = Math.floor(window.innerWidth * window.devicePixelRatio);
+    glCanvas.height = Math.floor(window.innerHeight * window.devicePixelRatio);
 
-    canvas.style.width = `${window.innerWidth}px`;
-    canvas.style.height = `${window.innerHeight}px`;
+    glCanvas.style.width = `${window.innerWidth}px`;
+    glCanvas.style.height = `${window.innerHeight}px`;
 
     draw();
 }
 
 function draw() {
-    gl.viewport(0, 0, canvas.width, canvas.height);
+    gl.viewport(0, 0, glCanvas.width, glCanvas.height);
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     gl.uniform3fv(shaderProgram.chargeArrayUniform, posQueue.asF32Array());
     gl.uniform1i(shaderProgram.chargeArrayLengthUniform, posQueue.length());
-    gl.uniform2fv(shaderProgram.viewportUniform, new Float32Array([window.innerWidth * 2.0, window.innerHeight * 2.0]));
+    gl.uniform2fv(shaderProgram.viewportUniform, new Float32Array([window.innerWidth * window.devicePixelRatio, window.innerHeight * window.devicePixelRatio]));
 
     gl.drawArrays(gl.TRIANGLES, 0, 6);
+}
+
+function dist(x1, y1, x2, y2) {
+    let dx = x1 - x2;
+    let dy = y1 - y2;
+
+    return Math.sqrt(dx * dx + dy * dy);
+}
+
+function onClick(event) {
+    let x = event.x / window.innerWidth;
+    let y = 1.0 - event.y / window.innerHeight;    
+
+    // Add Charge
+    if (event.button == 0 && slider.value != 0) {
+        posQueue.add([x, y, slider.value * 0.01]);
+    }
+
+    // Remove Charge
+    if (event.button == 2) {
+        for (let i = 0; i < posQueue.length(); i++) {
+            if (dist(x, y, posQueue.array[i][0], posQueue.array[i][1]) < 0.1) {
+                posQueue.remove(i);
+                break;
+            }
+        }
+    }
+
+    event.preventDefault();
+    draw();
 }
