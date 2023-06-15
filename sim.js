@@ -164,9 +164,15 @@ class ChargePool {
     }
 }
 
+// GL canvas
 const glCanvas = document.getElementById('gl-canvas');
 const gl = glCanvas.getContext('webgl');
 
+// Field line canvas
+const fieldCanvas = document.getElementById('field-canvas');
+const ctx = fieldCanvas.getContext('2d');
+
+// UI elements
 const slider = document.getElementById('charge-slider');
 const sliderValueText = document.getElementById('charge-value'); 
 
@@ -178,6 +184,8 @@ const unitQuad = [
      1.0, -1.0,
      1.0,  1.0
 ];
+
+const selectionRadius = 0.1;
 
 var shaderProgram = {
     program: null,
@@ -260,18 +268,26 @@ function init() {
     // Setup events for user interaction
     window.addEventListener('resize', initCanvas);
     
-    glCanvas.addEventListener('click', onClick);
-    glCanvas.addEventListener('contextmenu', onClick);
+    fieldCanvas.addEventListener('click', onClick);
+    fieldCanvas.addEventListener('contextmenu', onClick);
 
     slider.addEventListener('input', (_) => sliderValueText.innerHTML = `${slider.value} C`);
 }
 
 function initCanvas() {
+    // GL Canvas
     glCanvas.width = Math.floor(window.innerWidth * window.devicePixelRatio);
     glCanvas.height = Math.floor(window.innerHeight * window.devicePixelRatio);
 
     glCanvas.style.width = `${window.innerWidth}px`;
     glCanvas.style.height = `${window.innerHeight}px`;
+
+    // Field line canvas
+    fieldCanvas.width = Math.floor(window.innerWidth * window.devicePixelRatio);
+    fieldCanvas.height = Math.floor(window.innerHeight * window.devicePixelRatio);
+
+    fieldCanvas.style.width = `${window.innerWidth}px`;
+    fieldCanvas.style.height = `${window.innerHeight}px`;
 
     draw();
 }
@@ -286,6 +302,71 @@ function draw() {
     gl.uniform2fv(shaderProgram.viewportUniform, new Float32Array([window.innerWidth * window.devicePixelRatio, window.innerHeight * window.devicePixelRatio]));
 
     gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+    // ------ TESTING ------
+    // Draw field lines
+    ctx.clearRect(0, 0, fieldCanvas.width, fieldCanvas.height);
+    ctx.strokeStyle = '#FFFF00';
+
+    for (let i = 0; i < posQueue.length(); i++) {
+        const radius = 0.1;
+
+        if (posQueue.array[i][2] < 0) break;
+
+        for (let angle = 0; angle < 8; angle++) {
+            let x = radius * Math.cos(angle * (2 * Math.PI / 8));
+            let y = radius * Math.sin(angle * (2 * Math.PI / 8));
+            let pos = fromGlslCoords(x + posQueue.array[i][0], y + posQueue.array[i][1]);
+
+            ctx.beginPath();
+            ctx.moveTo(pos.x, pos.y);
+
+            for (let j = 0; j < 100; j++) {
+                let field = calcField(pos.x, pos.y);
+                pos.x += field.x;
+                pos.y += -field.y;
+
+                ctx.lineTo(pos.x, pos.y);
+            }
+
+            ctx.stroke();
+        }
+    }
+}
+
+function fromGlslCoords(x, y) {
+    return {
+        x: x * fieldCanvas.width,
+        y: fieldCanvas.height - y * fieldCanvas.height
+    };
+}
+
+function calcField(x, y) {
+    let field = {
+        x: 0,
+        y: 0
+    };
+
+    y = fieldCanvas.height - y;
+
+    for (let i = 0; i < posQueue.length(); i++) {
+        let dirX = x - posQueue.array[i][0] * fieldCanvas.width;
+        let dirY = y - posQueue.array[i][1] * fieldCanvas.height;
+
+        let mag = Math.sqrt(dirX * dirX + dirY * dirY);
+        dirX /= mag;
+        dirY /= mag;
+
+        let dist = distSquared(x, y, posQueue.array[i][0] * fieldCanvas.width, posQueue.array[i][1] * fieldCanvas.height);
+
+        field.x += posQueue.array[i][2] / dist * dirX;
+        field.y += posQueue.array[i][2] / dist * dirY;
+    }
+
+    field.x *= 1000000;
+    field.y *= 1000000;
+
+    return field;
 }
 
 function dist(x1, y1, x2, y2) {
@@ -293,6 +374,13 @@ function dist(x1, y1, x2, y2) {
     let dy = y1 - y2;
 
     return Math.sqrt(dx * dx + dy * dy);
+}
+
+function distSquared(x1, y1, x2, y2) {
+    let dx = x1 - x2;
+    let dy = y1 - y2;
+
+    return dx * dx + dy * dy;
 }
 
 function onClick(event) {
@@ -307,7 +395,7 @@ function onClick(event) {
     // Remove Charge
     if (event.button == 2) {
         for (let i = 0; i < posQueue.length(); i++) {
-            if (dist(x, y, posQueue.array[i][0], posQueue.array[i][1]) < 0.1) {
+            if (dist(x, y, posQueue.array[i][0], posQueue.array[i][1]) < selectionRadius) {
                 posQueue.remove(i);
                 break;
             }
