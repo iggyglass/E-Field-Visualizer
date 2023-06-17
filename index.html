@@ -9,9 +9,27 @@
     </head>
     <body onload="init()">
         <div id="input-div">
-            <label id="charge-slider-label" for="charge-slider" class="inputs">Charge: <span id="charge-value">0 C</span><br></label>
+            <label id="charge-slider-label" for="charge-slider" class="inputs">
+                Charge: <span id="charge-value" class="input-right value">0 C</span>
+                <br>
+            </label>
             <input type="range" id="charge-slider" class="inputs" min="-10" max="10">
-            <br>
+            <div id="checkboxes">
+                <label class="inputs">
+                    Field Lines: <input type="checkbox" id="field-line-checkbox" class="input-right">
+                </label>
+                <br>
+                <label class="inputs">
+                    Equipotentials: <input type="checkbox" id="equipotential-checkbox" class="input-right" checked>
+                </label>
+                <br>
+                <label class="inputs">
+                    Field Vectors: <input type="checkbox" id="field-vector-checkbox" class="input-right" checked>
+                </label>
+            </div>
+            <label id="voltage-value" class="inputs">
+                Voltage: <span id="voltage-value" class="input-right value">0 V</span>
+            </label>
             <div align="center">
                 <button class="inputs" id="reset-button">Clear</button>
                 <button class="inputs">Help</button>
@@ -19,6 +37,13 @@
         </div>
         <canvas id="gl-canvas" style="position:absolute;top:0px;left:0px;"></canvas>
         <canvas id="field-canvas" style="position:absolute;top:0px;left:0px"></canvas>
-        <script src="sim.js"></script>
+        <script src="modules/SimConsts.js" type="module"></script>
+        <script src="modules/ChargePool.js" type="module"></script>
+        <script src="modules/Vec2.js" type="module"></script>
+        <script src="modules/UIConsts.js" type="module"></script>
+        <script src="modules/ShaderSources.js" type="module"></script>
+        <script src="modules/GLRenderer.js" type="module"></script>
+        <script src="modules/CanvasRenderer.js" type="module"></script>
+        <script src="sim.js" type="module"></script>
     </body>
 </html>

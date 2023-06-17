@@ -6,10 +6,6 @@
     top: 5px;
 }
 
-#charge-value {
-    font-weight: 100;
-}
-
 button.inputs {
     margin-top: 15px;
     margin-bottom: 10px;
@@ -23,6 +19,20 @@ button.inputs {
     right: 0px;
     z-index: 1;
     border-radius: 5px;
+}
+
+#checkboxes {
+    margin-top: 20px;
+    margin-bottom: 10px;
+}
+
+.input-right {
+    float: right;
+    margin-right: 5px;
+}
+
+.input-right.value {
+    font-weight: 100;
 }
 
 input[type="range"] {
