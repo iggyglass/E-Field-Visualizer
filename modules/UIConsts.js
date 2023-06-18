@@ -12,3 +12,4 @@ export const slider = document.getElementById('charge-slider');
 export const sliderValueText = document.getElementById('charge-value');
 
 export const fieldLineCheckbox = document.getElementById('field-line-checkbox');
+export const resetButton = document.getElementById('reset-button');

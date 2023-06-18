@@ -18,6 +18,7 @@ function init() {
     UI.fieldCanvas.addEventListener('contextmenu', onClick);
 
     UI.slider.addEventListener('input', (_) => UI.sliderValueText.innerHTML = `${UI.slider.value} C`);
+    UI.resetButton.addEventListener('click', clearScreen);
     UI.fieldLineCheckbox.addEventListener('change', draw)
 }
 
@@ -42,6 +43,11 @@ function initCanvas() {
 function draw() {
     GL.renderField(posQueue);
     Canvas.renderFieldLines(posQueue);
+}
+
+function clearScreen() {
+    posQueue.clear();
+    draw();
 }
 
 function onClick(event) {

@@ -1,5 +1,4 @@
 export class ChargePool {
-    index = 0;
     maxSize = 0;
     array = [];
 
@@ -15,6 +14,10 @@ export class ChargePool {
 
     remove(index) {
         this.array.splice(index, 1);
+    }
+
+    clear() {
+        this.array = [];
     }
 
     length() {

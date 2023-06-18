@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>E-Field Visualizer Help</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100;400&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="styles.css">
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+        <script>
+            MathJax = {
+                tex: {
+                    inlineMath: [['\\(', '\\)']]
+                },
+                chtml: {
+                    scale: 0.8
+                },
+                svg: {
+                    scale: 0.8
+                }
+            };
+        </script>
+        <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+        <meta charset="UTF-8">
+    </head>
+    <body>
+        <div id="content">
+            <h1>E-Field Visualizer Help & Info</h1>
+            <section id="usage" class="level-1">
+                <h2>How to use</h2>
+                <ul>
+                    <li>Left click to add charges (up to <span id="max-charges">??</span>)</li>
+                    <li>Right click to remove charges</li>
+                    <li>Use the slider on the right to set how much charge the next charge will have</li>
+                </ul>
+                <p>
+                    Note that this webapp requires a modern(ish) browser that supports WebGL along with the
+                    WebGL standard derivatives extension. With the probable exception of Internet Explorer,
+                    any browser from the nearly last 10 years should work. Also your browser should support
+                    Javascript (of course).
+                </p>
+                <p>
+                    If the webapp is running a bit slow and you have field lines enabled, try disabling them
+                    while you place your charges, as drawing them is costly.
+                    (<a href="#field-line-rendering-why">Why?</a>)
+                </p>
+            </section>
+            <section id="technical" class="level-1">
+                <h2>Some Technical Stuff (for those who are curious)</h2>
+                <section id="how-does-it-work" class="level-2">
+                    <h3>How does it all work?</h3>
+                    <p>
+                        In short, drawing the field lines is handled on the CPU, in Javascript, and drawing
+                        everything else in the visualization is handled on the GPU, in GLSL. For the vector
+                        field and the equipotential lines, the color of each pixel is <i>primarily</i>
+                        dependent upon the the positions and strengths of all the charges on screen and not
+                        on the surrounding pixels, allowing us to write a shader, in GLSL, to compute all
+                        these values in <i>parallel</i> to one another to make the webapp run more
+                        efficiently. The field lines however, need to be traced out which, by nature, isn't
+                        really something you can parallelize to each pixel on the screen. As such, those are
+                        done sequentially in Javascript and will thus take much longer to render than the
+                        equipotential lines and vector field. (<a href="#field-line-rendering-why">Why?</a>)
+                    </p>
+                    <p>
+                        However, there's a slight complication on the GPU side of things. Remember how I said
+                        the pixel colors were <i>primarily</i> dependent on the charges, not <i>entirely</i>
+                        dependent? Well, it turns out that the equipotential lines need to rely partially on
+                        values computed by the neighboring pixels. Namely, since \(\vec{E}=-\nabla V\), one
+                        way to think about equipotential lines in 2D are as topographical lines on a map
+                        where the electric potential, \(V\), represents the height of your terrain and
+                        \(\vec{E}\) is your slope &mdash; this is important because it means if we were to
+                        simply assign a color to every point with a given potential (or more precisely, a
+                        color to every point <i>within some \(\varepsilon\)</i> of a potential), our line
+                        would change in thickness depeding on the slope of our potential function at that
+                        point (e.g. a smaller slope makes a thicker line and a larger slope makes a thinner
+                        line). Estimating a derivative requires knowledge of neighboring values
+                        <span style="white-space:nowrap;">(\(\frac{\mathrm{d}y}{\mathrm{d}x}\approx\frac{\Delta y}{\Delta x}\)),</span>
+                        but GPUs run each
+                        pixel in parallel to one another, normally with no way to communicate between pixels,
+                        creating a dilemma. Fortunately however, pixels <i>are</i> run in batches, and GLSL
+                        is able to exploit this behind the scenes to estimate first-order derivatives for us.
+                        Specifically, for some computed scalar, \(p\), there is a GLSL function,
+                        \(\mathrm{fwidth}(p)\), such that
+                        \begin{equation}
+                            \mathrm{fwidth}(p):=\left|\frac{\partial p}{\partial x}\right|+\left|\frac{\partial p}{\partial y}\right|,
+                        \end{equation}
+                        which is <i>just</i> what we need to normalize the width of our lines. This allows
+                        the equipotential lines to be drawn (nicely) on the GPU, saving precious CPU time
+                        (<i>and</i> why the webapp needs the standard derivatives extension to run).
+                    </p>
+                    <p>
+                        If you're curious to dig around in the (not-so-great) code, you can find
+                        <a href="https://github.com/iggyglass/E-Field-Visualizer">this project on GitHub</a>!
+                    </p>
+                </section>
+                <section id="field-line-rendering-why" class="level-2">
+                    <h3>Why is drawing the field lines so costly?</h3>
+                    <p>
+                        There's no <i>great</i> way to do field lines on the GPU, unlike the equipotentials
+                        and vector field. This is because drawing the field lines requires tracing a path
+                        <i>through</i> the vector field, which is an inherently sequential operation and not
+                        one that can be run independently for each pixel on the screen in parallel. Likewise,
+                        although the code could be written more efficiently, as it stands the operation
+                        scales <i>cubically</i> with the number of charges on screen
+                        <span style="white-space:nowrap;">(\(\mathcal{O}(n^3)\),</span> due to the
+                        charge-intersection checks as well as the vector field calculation, which is
+                        \(\mathcal{O}(n)\) in and of itself) and linearly with the number of points in each
+                        line <span style="white-space:nowrap;">(\(\mathcal{O}(n)\)).</span>
+                    </p>
+                    <p>
+                        One possible optimization would be to run each <i>line</i> in parallel or at the very
+                        least asynchronously, but doing so would likely create many headaches in terms of
+                        programming, hence the field line rendering stays as it is for now.
+                    </p>
+                    <section id="field-line-rendering" class="level-3">
+                        <h4>How are the field lines <i>currently</i> rendered?</h4>
+                        <p>
+                            For each charge on screen, a number of evenly-spaced field lines,
+                            <span id="field-line-num">??</span>, are "emitted." If the charge is positive,
+                            the angle of the first field line is given by \(\frac{2\pi}{n}\), if negative
+                            then \(\frac{2\pi}{n}+\frac{\pi}{n}\). For each line, the vector at the current
+                            point in the electric field, \(\vec{E}\), is calculated as the superposition of
+                            all the E-field contributions of each charge, \(q_i\), considering their position
+                            relative to the current point, \(\vec{r_i}\),
+                            <span style="white-space:nowrap;">(\(\vec{E}=\sum\limits_i k\frac{q_i}{|\vec{r_i}|^2}\hat{r}\)).</span>
+                            \(\vec{E}\) is then normalized and multiplied by a constant scaling factor (so
+                            all step sizes are the same length) and this resultant vector is added to our
+                            position to obtain the position of our next step (and a line is drawn between the
+                            previous position and the new position). This process of calculating the E-field
+                            at the current position and taking a step in that direction is performed for
+                            (currently) <span id="field-line-iterations">??</span> interations, or until the
+                            line intersects with a charge. 
+                        </p>
+                    </section>
+                </section>
+            </section>
+        </div>
+        <script src="../modules/SimConsts.js" type="module"></script>
+        <script src="ConstFill.js" type="module"></script>
+    </body>
+</html>

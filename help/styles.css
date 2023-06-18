@@ -1,0 +1,38 @@
+body {
+    font-family: 'Roboto', sans-serif;
+    color: white;
+    font-size: 20px;
+    background-color: rgb(38, 38, 38);
+    background-size: 25px 25px;
+    background-image: radial-gradient(circle, rgba(255, 255, 255, 0.1) 1px, rgba(0, 0, 0, 0) 1px);
+    background-attachment: fixed;
+    text-align: justify;
+}
+
+#content {
+    position: relative;
+    left: 5%;
+    width: 75%;
+}
+
+a, a:visited {
+    color: rgb(151, 205, 241);
+    text-decoration-line: underline;
+    text-decoration-thickness: 0.5px;
+}
+
+h1, h2, h3, h4 {
+    font-weight: 400;
+}
+
+.level-1 {
+    margin-top: 10%;
+}
+
+.level-2 {
+    margin-top: 5%;
+}
+
+p {
+    font-weight: 100;
+}
