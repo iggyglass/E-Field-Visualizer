@@ -27,7 +27,7 @@ export const ShaderSources = {
     const float ARROW_HEAD_LENGTH = ARROW_TILE_SIZE / 6.0;
     const float ARROW_SHAFT_THICKNESS = 1.0;
 
-    const float GRID_RADIUS = 2.0;
+    const float GRID_RADIUS = 2.2;
 
     const float POTENTIAL_COLOR_SCALE = 10000.0;
     const float POTENTIAL_LINE_WIDTH = 7000.0;
@@ -38,7 +38,7 @@ export const ShaderSources = {
     const vec3 NEG_CHARGE_COLOR = vec3(0.3, 0.5, 1.0);
 
     const vec3 BG_COLOR = vec3(0.15);
-    const vec3 GRID_COLOR = vec3(0.5);
+    const vec3 GRID_COLOR = vec3(0.75);
 
     float distSquared(vec2 a, vec2 b)
     {

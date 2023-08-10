@@ -2,6 +2,7 @@ import * as Consts from './modules/SimConsts.js';
 import * as UI from './modules/UIConsts.js';
 import * as GL from './modules/GLRenderer.js';
 import * as Canvas from './modules/CanvasRenderer.js';
+import * as Voltage from './modules/VoltageDisplay.js'
 import { ChargePool } from './modules/ChargePool.js';
 import { Vec2 } from './modules/Vec2.js';
 
@@ -16,7 +17,8 @@ var leftMouseStatus = {
     down: false,
     dragging: false,
     dragStart: Vec2.zero(),
-    selIndex: 0
+    selIndex: 0,
+    idleTimeout: null
 };
 
 function init() {
@@ -84,6 +86,8 @@ function onMouseUp(event) {
 }
 
 function onMouseMove(event) {
+    Voltage.updateVoltage(posFromMouse(event), posQueue);
+
     if (leftMouseStatus.down && !leftMouseStatus.dragging && leftMouseStatus.dragStart.distFrom(event) > 100) { // TODO: make this UI const
         leftMouseStatus.dragging = true;
         onDragStart(event);
