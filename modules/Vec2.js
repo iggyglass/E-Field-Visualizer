@@ -7,6 +7,13 @@ export class Vec2 {
         this.y = y || 0;
     }
 
+    static fromOther(other) {
+        let x = other.x || other[0] || 0;
+        let y = other.y || other[1] || 0;
+
+        return new Vec2(x, y);
+    }
+
     static fromPolar(r, theta) {
         return new Vec2(r * Math.cos(theta), r * Math.sin(theta));
     }

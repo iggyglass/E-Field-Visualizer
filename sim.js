@@ -5,7 +5,19 @@ import * as Canvas from './modules/CanvasRenderer.js';
 import { ChargePool } from './modules/ChargePool.js';
 import { Vec2 } from './modules/Vec2.js';
 
+const MouseButtons = {
+    left: 0,
+    right: 2
+};
+
 var posQueue = new ChargePool(Consts.maxCharges);
+
+var leftMouseStatus = {
+    down: false,
+    dragging: false,
+    dragStart: Vec2.zero(),
+    selIndex: 0
+};
 
 function init() {
     GL.initShaders();
@@ -14,12 +26,14 @@ function init() {
     // Setup events for user interaction
     window.addEventListener('resize', initCanvas);
     
-    UI.fieldCanvas.addEventListener('click', onClick);
-    UI.fieldCanvas.addEventListener('contextmenu', onClick);
+    UI.fieldCanvas.addEventListener('mousedown', onMouseDown);
+    UI.fieldCanvas.addEventListener('mouseup', onMouseUp); // TODO: mouse exit
+    UI.fieldCanvas.addEventListener('mousemove', onMouseMove);
+    UI.fieldCanvas.addEventListener('contextmenu', (e) => e.preventDefault());
 
     UI.slider.addEventListener('input', (_) => UI.sliderValueText.innerHTML = `${UI.slider.value} C`);
     UI.resetButton.addEventListener('click', clearScreen);
-    UI.fieldLineCheckbox.addEventListener('change', draw)
+    UI.fieldLineCheckbox.addEventListener('change', (_) => window.requestAnimationFrame(draw));
 }
 
 function initCanvas() {
@@ -37,7 +51,7 @@ function initCanvas() {
     UI.fieldCanvas.style.width = `${window.innerWidth}px`;
     UI.fieldCanvas.style.height = `${window.innerHeight}px`;
 
-    draw();
+    window.requestAnimationFrame(draw);
 }
 
 function draw() {
@@ -47,29 +61,82 @@ function draw() {
 
 function clearScreen() {
     posQueue.clear();
-    draw();
+    window.requestAnimationFrame(draw);
+}
+
+function onMouseDown(event) {
+    if (event.button != MouseButtons.left) return;
+
+    leftMouseStatus.down = true;
+    leftMouseStatus.dragStart = posFromMouse(event);
+}
+
+function onMouseUp(event) {
+    if (event.button == MouseButtons.right) onClick(event);
+    if (event.button != MouseButtons.left) return;
+
+    if (!leftMouseStatus.dragging) {
+        onClick(event);
+    }
+
+    leftMouseStatus.dragging = false;
+    leftMouseStatus.down = false;
+}
+
+function onMouseMove(event) {
+    if (leftMouseStatus.down && !leftMouseStatus.dragging && leftMouseStatus.dragStart.distFrom(event) > 100) { // TODO: make this UI const
+        leftMouseStatus.dragging = true;
+        onDragStart(event);
+    }
+
+    if (leftMouseStatus.dragging) onDrag(event);
+}
+
+function onDragStart(event) {
+    leftMouseStatus.selIndex = selectCharge(leftMouseStatus.dragStart);
+}
+
+function onDrag(event) {
+    if (leftMouseStatus.selIndex == null) return;
+
+    let pos = posFromMouse(event);
+
+    posQueue.array[leftMouseStatus.selIndex][0] = pos.x;
+    posQueue.array[leftMouseStatus.selIndex][1] = pos.y;
+
+    window.requestAnimationFrame(draw);
 }
 
 function onClick(event) {
-    let pos = new Vec2(event.x / window.innerWidth, 1.0 - event.y / window.innerHeight);
+    let pos = posFromMouse(event);
 
     // Add Charge
-    if (event.button == 0 && UI.slider.value != 0) {
+    if (event.button == MouseButtons.left && UI.slider.value != 0) {
         posQueue.add([pos.x, pos.y, UI.slider.value * 0.01]);
     }
 
     // Remove Charge
-    if (event.button == 2) {
-        for (let i = 0; i < posQueue.length(); i++) {
-            if (pos.distFrom(posQueue.array[i]) < UI.selectionRadius) {
-                posQueue.remove(i);
-                break;
-            }
+    if (event.button == MouseButtons.right) {
+        let i = selectCharge(pos);
+
+        if (i != null) posQueue.remove(i);
+    }
+
+    window.requestAnimationFrame(draw);
+}
+
+function posFromMouse(event) {
+    return new Vec2(event.x / window.innerWidth, 1.0 - event.y / window.innerHeight);
+}
+
+function selectCharge(pos) {
+    for (let i = 0; i < posQueue.length(); i++) {
+        if (pos.distFrom(posQueue.array[i]) < UI.selectionRadius) {
+            return i;
         }
     }
 
-    event.preventDefault();
-    draw();
+    return null;
 }
 
 window.init = init;

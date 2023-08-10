@@ -36,13 +36,14 @@
                 <p>
                     Note that this webapp requires a modern(ish) browser that supports WebGL along with the
                     WebGL standard derivatives extension. With the probable exception of Internet Explorer,
-                    any browser from the nearly last 10 years should work. Also your browser should support
+                    any browser from nearly the last 10 years should work. Also your browser should support
                     Javascript (of course).
                 </p>
                 <p>
                     If the webapp is running a bit slow and you have field lines enabled, try disabling them
-                    while you place your charges, as drawing them is costly.
-                    (<a href="#field-line-rendering-why">Why?</a>)
+                    while you place your charges, as drawing the lines is costly.
+                    (<a href="#field-line-rendering-why">Why?</a>) Additionally, it may help to turn on
+                    Hardware Acceleration in your browser's settings.
                 </p>
             </section>
             <section id="technical" class="level-1">
@@ -73,14 +74,15 @@
                         color to every point <i>within some \(\varepsilon\)</i> of a potential), our line
                         would change in thickness depeding on the slope of our potential function at that
                         point (e.g. a smaller slope makes a thicker line and a larger slope makes a thinner
-                        line). Estimating a derivative requires knowledge of neighboring values
+                        line). One way to solve this is to normalize our \(\varepsilon\) against the
+                        screen-space gradient of our potential function, however, estimating a derivative
+                        requires knowledge of neighboring values
                         <span style="white-space:nowrap;">(\(\frac{\mathrm{d}y}{\mathrm{d}x}\approx\frac{\Delta y}{\Delta x}\)),</span>
-                        but GPUs run each
-                        pixel in parallel to one another, normally with no way to communicate between pixels,
-                        creating a dilemma. Fortunately however, pixels <i>are</i> run in batches, and GLSL
-                        is able to exploit this behind the scenes to estimate first-order derivatives for us.
-                        Specifically, for some computed scalar, \(p\), there is a GLSL function,
-                        \(\mathrm{fwidth}(p)\), such that
+                        yet GPUs run each pixel in parallel to one another, normally with no way to
+                        communicate between pixels, creating a dilemma. Fortunately however, pixels
+                        <i>are</i> run in batches, and GLSL is able to exploit this behind the scenes to
+                        estimate first-order derivatives for us. Specifically, for some computed scalar,
+                        \(p\), there is a GLSL function, \(\mathrm{fwidth}(p)\), such that
                         \begin{equation}
                             \mathrm{fwidth}(p):=\left|\frac{\partial p}{\partial x}\right|+\left|\frac{\partial p}{\partial y}\right|,
                         \end{equation}
@@ -121,7 +123,7 @@
                             then \(\frac{2\pi}{n}+\frac{\pi}{n}\). For each line, the vector at the current
                             point in the electric field, \(\vec{E}\), is calculated as the superposition of
                             all the E-field contributions of each charge, \(q_i\), considering their position
-                            relative to the current point, \(\vec{r_i}\),
+                            relative to the current point, \(\vec{r_i}\)
                             <span style="white-space:nowrap;">(\(\vec{E}=\sum\limits_i k\frac{q_i}{|\vec{r_i}|^2}\hat{r}\)).</span>
                             \(\vec{E}\) is then normalized and multiplied by a constant scaling factor (so
                             all step sizes are the same length) and this resultant vector is added to our
