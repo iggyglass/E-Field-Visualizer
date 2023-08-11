@@ -1,3 +1,7 @@
+body {
+    background-color: rgb(38, 38, 38);
+}
+
 .inputs {
     font-family: 'Roboto', sans-serif;
     font-weight: 400;
@@ -9,14 +13,6 @@
 button.inputs {
     margin-top: 15px;
     margin-bottom: 10px;
-}
-
-label {
-    display: inline-block;
-    margin-right: 0px !important;
-    width: 95%;
-    margin-top: 1px !important;
-    margin-bottom: 0px !important;
 }
 
 #input-div {
@@ -33,6 +29,14 @@ label {
 #checkboxes {
     margin-top: 20px;
     margin-bottom: 10px;
+}
+
+label.inputs {
+    display: inline-block;
+    margin-right: 0px !important;
+    width: 95%;
+    margin-top: 1px !important;
+    margin-bottom: 0px !important;
 }
 
 .input-right {

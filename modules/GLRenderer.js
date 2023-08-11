@@ -97,7 +97,7 @@ export function renderField(charges) {
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    gl.uniform3fv(shaderProgram.chargeArrayUniform, charges.asF32Array());
+    gl.uniform3fv(shaderProgram.chargeArrayUniform, charges.length() > 0 ? charges.asF32Array() : [0, 0, 0]);
     gl.uniform1i(shaderProgram.chargeArrayLengthUniform, charges.length());
     gl.uniform1i(shaderProgram.equipotentialUniform, UI.equipotentialCheckbox.checked | 0);
     gl.uniform1i(shaderProgram.fieldVecUniform, UI.fieldVectorCheckbox.checked | 0);

@@ -1,6 +1,6 @@
 // Interaction and Design Constants
 export const selectionRadius = 0.8;
-export const fieldLineColor = '#FFFF00';
+export const fieldLineColor = '#FCFC65';
 export const fieldLineWidth = 2.5;
 export const minDragDistance = 100;
 
