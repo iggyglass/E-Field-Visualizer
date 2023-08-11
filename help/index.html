@@ -27,12 +27,18 @@
         <div id="content">
             <h1>E-Field Visualizer Help & Info</h1>
             <section id="usage" class="level-1">
-                <h2>How to use</h2>
+                <h2>How To Use</h2>
                 <ul>
-                    <li>Left click to add charges (up to <span id="max-charges">??</span>)</li>
+                    <li>Left click to add charges (up to <span class="max-charges">??</span>)</li>
                     <li>Right click to remove charges</li>
-                    <li>Use the slider on the right to set how much charge the next charge will have</li>
+                    <li>Click and drag to move charges</li>
+                    <li>Use the slider on the right to change the charge of the next charge</li>
                 </ul>
+                <p>
+                    The voltage at your cursor is displayed on the right side of the screen. Red
+                    equipotential lines indicate a positive electric potential whereas blue equipotential
+                    lines indicate a negative electric potential.
+                </p>
                 <p>
                     Note that this webapp requires a modern(ish) browser that supports WebGL along with the
                     WebGL standard derivatives extension. With the probable exception of Internet Explorer,
@@ -69,26 +75,35 @@
                         values computed by the neighboring pixels. Namely, since \(\vec{E}=-\nabla V\), one
                         way to think about equipotential lines in 2D are as topographical lines on a map
                         where the electric potential, \(V\), represents the height of your terrain and
-                        \(\vec{E}\) is your slope &mdash; this is important because it means if we were to
-                        simply assign a color to every point with a given potential (or more precisely, a
-                        color to every point <i>within some \(\varepsilon\)</i> of a potential), our line
-                        would change in thickness depeding on the slope of our potential function at that
-                        point (e.g. a smaller slope makes a thicker line and a larger slope makes a thinner
-                        line). One way to solve this is to normalize our \(\varepsilon\) against the
-                        screen-space gradient of our potential function, however, estimating a derivative
-                        requires knowledge of neighboring values
+                        \(\vec{E}\) is your (downward) slope &mdash; this is important because it means if we
+                        were to simply assign a color to every point with a given potential (or more
+                        precisely, a color to every point <i>within some \(\varepsilon\)</i> of a potential),
+                        our line would change in thickness depeding on the slope of our potential function at
+                        that point (e.g., a smaller slope makes a thicker line and a larger slope makes a
+                        thinner line). One way to solve this is to normalize our \(\varepsilon\) against the
+                        screen-space gradient of our potential function. Unfortunately, estimating a
+                        derivative requires knowledge of neighboring values
                         <span style="white-space:nowrap;">(\(\frac{\mathrm{d}y}{\mathrm{d}x}\approx\frac{\Delta y}{\Delta x}\)),</span>
                         yet GPUs run each pixel in parallel to one another, normally with no way to
                         communicate between pixels, creating a dilemma. Fortunately however, pixels
                         <i>are</i> run in batches, and GLSL is able to exploit this behind the scenes to
-                        estimate first-order derivatives for us. Specifically, for some computed scalar,
-                        \(p\), there is a GLSL function, \(\mathrm{fwidth}(p)\), such that
+                        estimate first-order screen-space derivatives for us. Specifically, for some computed
+                        scalar, \(p\), there is a GLSL function, \(\mathrm{fwidth}(p)\), such that
                         \begin{equation}
                             \mathrm{fwidth}(p):=\left|\frac{\partial p}{\partial x}\right|+\left|\frac{\partial p}{\partial y}\right|,
                         \end{equation}
                         which is <i>just</i> what we need to normalize the width of our lines. This allows
                         the equipotential lines to be drawn (nicely) on the GPU, saving precious CPU time
                         (<i>and</i> why the webapp needs the standard derivatives extension to run).
+                    </p>
+                    <p>
+                        Additionally, since the E-field is calculated by taking the superposition of the
+                        E-field contributions of <i>all</i> the charges on screen (something which is
+                        inherently an \(\mathcal{O}(n)\) operation) and GLSL needs to be able to unroll loops
+                        at compile-time (due to the nature of GPU architecture), there needs to be a hard
+                        limit on the number of charges visible at any given time. Currently, this hard limit
+                        is <span class="max-charges">??</span> and any additional charges will simply
+                        replace the eldest charges.
                     </p>
                     <p>
                         If you're curious to dig around in the (not-so-great) code, you can find
