@@ -11,6 +11,14 @@ button.inputs {
     margin-bottom: 10px;
 }
 
+label {
+    display: inline-block;
+    margin-right: 0px !important;
+    width: 95%;
+    margin-top: 1px !important;
+    margin-bottom: 0px !important;
+}
+
 #input-div {
     background-color: #000000AA;
     color: white;
@@ -19,6 +27,7 @@ button.inputs {
     right: 0px;
     z-index: 1;
     border-radius: 5px;
+    width: 10.7rem;
 }
 
 #checkboxes {
@@ -27,8 +36,8 @@ button.inputs {
 }
 
 .input-right {
-    float: right;
-    margin-right: 5px;
+    position: absolute;
+    right: 0px;
 }
 
 .input-right.value {

@@ -11,21 +11,25 @@
     <body onload="init()">
         <div id="input-div">
             <label id="charge-slider-label" for="charge-slider" class="inputs">
-                Charge: <span id="charge-value" class="input-right value">3 C</span>
+                <span id="charge-value" class="input-right value">3 C</span>
+                Charge:
                 <br>
             </label>
             <input type="range" id="charge-slider" class="inputs" min="-10" max="10" value="3">
             <div id="checkboxes">
                 <label class="inputs">
-                    Field Lines: <input type="checkbox" id="field-line-checkbox" class="input-right">
+                    <input type="checkbox" id="field-line-checkbox" class="input-right">
+                    <span class="input-left">Field Lines:</span>
                 </label>
                 <br>
                 <label class="inputs">
-                    Equipotentials: <input type="checkbox" id="equipotential-checkbox" class="input-right" checked>
+                    <input type="checkbox" id="equipotential-checkbox" class="input-right" checked>
+                    <span class="input-left">Equipotentials:</span>
                 </label>
                 <br>
                 <label class="inputs">
-                    Field Vectors: <input type="checkbox" id="field-vector-checkbox" class="input-right" checked>
+                    <input type="checkbox" id="field-vector-checkbox" class="input-right" checked>
+                    <span class="input-left">Field Vectors:</span>
                 </label>
             </div>
             <label id="voltage-value-text" class="inputs">
