@@ -21,6 +21,8 @@ export const ShaderSources = {
     uniform vec2 viewport;
     uniform vec3 charges[MAX_CHARGES];
     uniform int chargesCount;
+    uniform bool renderVecs;
+    uniform bool renderEquipotentials;
 
     const float ARROW_TILE_SIZE = 45.0;
     const float ARROW_HEAD_ANGLE = 45.0 * PI / 180.0;
@@ -127,20 +129,45 @@ export const ShaderSources = {
         return vec4(color, a);
     }
 
+    vec4 calcChargeColor()
+    {
+        vec4 color = vec4(0.0);
+
+        for (int i = 0; i < MAX_CHARGES; ++i)
+        {
+            if (i >= chargesCount) break;
+            
+            float scale = smoothstep(1.0, 0.0, distance(gl_FragCoord.xy, charges[i].xy * viewport) * 0.01 - abs(charges[i].z) * 10.0);
+            vec4 newCol = (charges[i].z > 0.0 ? vec4(POS_CHARGE_COLOR, 1.0) : vec4(NEG_CHARGE_COLOR, 1.0)) * scale;
+            color = max(color, newCol);
+        }
+
+        return color;
+    }
+
     void main()
     {
         vec3 color = BG_COLOR;
         vec4 potentialColor = calcPotentialColor();
+        vec4 chargeColor = calcChargeColor();
         float arrowAlpha = arrow(gl_FragCoord.xy, calcField(arrowTileCenterCoord(gl_FragCoord.xy)) * ARROW_TILE_SIZE * 0.4);
 
-        if (chargesCount > 0)
+        // Render grid or arrows
+        if (renderVecs && chargesCount > 0)
         {
             color = mix(color, GRID_COLOR, arrowAlpha * length(calcField(gl_FragCoord.xy)));
-            color = mix(color, potentialColor.rgb, potentialColor.a);
+            color = clamp(color, vec3(0.0), vec3(1.0));
         }
         else
         {
             color = mix(color, GRID_COLOR, gridCircle(gl_FragCoord.xy) * 0.1);
+        }
+
+        // Render charges and field lines
+        if (chargesCount > 0)
+        {
+            if (renderEquipotentials) color = mix(color, potentialColor.rgb, potentialColor.a);
+            color = mix(color, chargeColor.rgb, chargeColor.a);
         }
     
         gl_FragColor = vec4(color, 1.0);

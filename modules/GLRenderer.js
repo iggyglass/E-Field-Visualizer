@@ -17,7 +17,9 @@ var shaderProgram = {
     positionAttribute: null,
     chargeArrayUniform: null,
     chargeArrayLengthUniform: null,
-    viewportUniform: null
+    viewportUniform: null,
+    equipotentialUniform: null,
+    fieldVecUniform: null
 };
 
 export function initShaders() {
@@ -79,6 +81,8 @@ export function initShaders() {
     shaderProgram.chargeArrayUniform = gl.getUniformLocation(shaderProgram.program, 'charges');
     shaderProgram.chargeArrayLengthUniform = gl.getUniformLocation(shaderProgram.program, 'chargesCount');
     shaderProgram.viewportUniform = gl.getUniformLocation(shaderProgram.program, 'viewport');
+    shaderProgram.equipotentialUniform = gl.getUniformLocation(shaderProgram.program, 'renderEquipotentials');
+    shaderProgram.fieldVecUniform = gl.getUniformLocation(shaderProgram.program, 'renderVecs');
 
     gl.vertexAttribPointer(shaderProgram.positionAttribute, 2, gl.FLOAT, gl.FALSE, 2 * Float32Array.BYTES_PER_ELEMENT, 0);
     gl.enableVertexAttribArray(shaderProgram.positionAttribute);
@@ -95,6 +99,8 @@ export function renderField(charges) {
 
     gl.uniform3fv(shaderProgram.chargeArrayUniform, charges.asF32Array());
     gl.uniform1i(shaderProgram.chargeArrayLengthUniform, charges.length());
+    gl.uniform1i(shaderProgram.equipotentialUniform, UI.equipotentialCheckbox.checked | 0);
+    gl.uniform1i(shaderProgram.fieldVecUniform, UI.fieldVectorCheckbox.checked | 0);
     gl.uniform2fv(shaderProgram.viewportUniform, new Float32Array([window.innerWidth * window.devicePixelRatio, window.innerHeight * window.devicePixelRatio]));
 
     gl.drawArrays(gl.TRIANGLES, 0, 6);

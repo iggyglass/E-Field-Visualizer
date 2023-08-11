@@ -29,13 +29,15 @@ function init() {
     window.addEventListener('resize', initCanvas);
     
     UI.fieldCanvas.addEventListener('mousedown', onMouseDown);
-    UI.fieldCanvas.addEventListener('mouseup', onMouseUp); // TODO: mouse exit
+    UI.fieldCanvas.addEventListener('mouseup', onMouseUp);
     UI.fieldCanvas.addEventListener('mousemove', onMouseMove);
     UI.fieldCanvas.addEventListener('contextmenu', (e) => e.preventDefault());
 
     UI.slider.addEventListener('input', (_) => UI.sliderValueText.innerHTML = `${UI.slider.value} C`);
     UI.resetButton.addEventListener('click', clearScreen);
     UI.fieldLineCheckbox.addEventListener('change', (_) => window.requestAnimationFrame(draw));
+    UI.equipotentialCheckbox.addEventListener('change', (_) => window.requestAnimationFrame(draw));
+    UI.fieldVectorCheckbox.addEventListener('change', (_) => window.requestAnimationFrame(draw));
 }
 
 function initCanvas() {
@@ -88,7 +90,7 @@ function onMouseUp(event) {
 function onMouseMove(event) {
     Voltage.updateVoltage(posFromMouse(event), posQueue);
 
-    if (leftMouseStatus.down && !leftMouseStatus.dragging && leftMouseStatus.dragStart.distFrom(event) > 100) { // TODO: make this UI const
+    if (leftMouseStatus.down && !leftMouseStatus.dragging && leftMouseStatus.dragStart.distFrom(event) > UI.minDragDistance) {
         leftMouseStatus.dragging = true;
         onDragStart(event);
     }
@@ -117,13 +119,17 @@ function onClick(event) {
     // Add Charge
     if (event.button == MouseButtons.left && UI.slider.value != 0) {
         posQueue.add([pos.x, pos.y, UI.slider.value * 0.01]);
+        Voltage.updateVoltage(pos, posQueue);
     }
 
     // Remove Charge
     if (event.button == MouseButtons.right) {
         let i = selectCharge(pos);
 
-        if (i != null) posQueue.remove(i);
+        if (i != null) {
+            posQueue.remove(i);
+            Voltage.updateVoltage(pos, posQueue);
+        }
     }
 
     window.requestAnimationFrame(draw);
@@ -135,7 +141,7 @@ function posFromMouse(event) {
 
 function selectCharge(pos) {
     for (let i = 0; i < posQueue.length(); i++) {
-        if (pos.distFrom(posQueue.array[i]) < UI.selectionRadius) {
+        if (pos.distFrom(posQueue.array[i]) < Math.abs(posQueue.array[i][2]) * UI.selectionRadius) {
             return i;
         }
     }

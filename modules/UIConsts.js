@@ -1,7 +1,8 @@
 // Interaction and Design Constants
-export const selectionRadius = 0.1;
+export const selectionRadius = 0.8;
 export const fieldLineColor = '#FFFF00';
 export const fieldLineWidth = 2.5;
+export const minDragDistance = 100;
 
 // Canvases
 export const glCanvas = document.getElementById('gl-canvas');
@@ -13,4 +14,6 @@ export const sliderValueText = document.getElementById('charge-value');
 export const voltageValueText = document.getElementById('voltage-value');
 
 export const fieldLineCheckbox = document.getElementById('field-line-checkbox');
+export const equipotentialCheckbox = document.getElementById('equipotential-checkbox');
+export const fieldVectorCheckbox = document.getElementById('field-vector-checkbox');
 export const resetButton = document.getElementById('reset-button');
