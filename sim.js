@@ -23,7 +23,7 @@ var leftMouseStatus = {
 
 function init() {
     initErrorHandling();
-    if (!GL.initShaders()) return;
+    GL.initShaders()
     initCanvas();
 
     // Setup events for user interaction

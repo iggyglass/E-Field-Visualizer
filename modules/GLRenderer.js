@@ -72,8 +72,6 @@ export function initShaders() {
     gl.enableVertexAttribArray(shaderProgram.positionAttribute);
 
     gl.useProgram(shaderProgram.program);
-
-    return true;
 }
 
 export function renderField(charges) {
