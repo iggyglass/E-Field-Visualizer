@@ -1,4 +1,4 @@
-import { ShaderSources } from './ShaderSources.js';
+import * as ShaderSources from './ShaderSources.js';
 import * as UI from './UIConsts.js';
 
 const gl = UI.glCanvas.getContext('webgl');
@@ -35,11 +35,17 @@ export function initShaders() {
         return false;
     }
 
+    if (!ShaderSources.loadShaders()) {
+        console.error('Unable to load shaders!');
+        return false;
+    }
+
+    let shaderSources = ShaderSources.getShaders();
     let vertShader = gl.createShader(gl.VERTEX_SHADER);
     let fragShader = gl.createShader(gl.FRAGMENT_SHADER);
 
-    gl.shaderSource(vertShader, ShaderSources.vertSource);
-    gl.shaderSource(fragShader, ShaderSources.fragSource);
+    gl.shaderSource(vertShader, shaderSources.vertSource);
+    gl.shaderSource(fragShader, shaderSources.fragSource);
 
     gl.compileShader(vertShader);
     gl.compileShader(fragShader);
