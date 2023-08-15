@@ -23,23 +23,13 @@ var shaderProgram = {
 };
 
 export function initShaders() {
-    if (!gl) {
-        console.error('WebGL support is required to run!');
-        return false;
-    }
+    if (!gl) throw new Error('WebGL support is required to run!');
 
     let ext = gl.getExtension('OES_standard_derivatives');
 
-    if (!ext) {
-        console.error('Unable to use WebGL standard derivatives extension!');
-        return false;
-    }
+    if (!ext) throw new Error('Unable to use WebGL standard derivatives extension!');
 
-    if (!ShaderSources.loadShaders()) {
-        console.error('Unable to load shaders!');
-        return false;
-    }
-
+    ShaderSources.loadShaders();
     let shaderSources = ShaderSources.getShaders();
     let vertShader = gl.createShader(gl.VERTEX_SHADER);
     let fragShader = gl.createShader(gl.FRAGMENT_SHADER);
@@ -50,15 +40,9 @@ export function initShaders() {
     gl.compileShader(vertShader);
     gl.compileShader(fragShader);
 
-    if (!gl.getShaderParameter(vertShader, gl.COMPILE_STATUS)) {
-        console.error('Could not compile vertex shader!', gl.getShaderInfoLog(vertShader));
-        return false;
-    }
+    if (!gl.getShaderParameter(vertShader, gl.COMPILE_STATUS)) throw new Error('Could not compile vertex shader!', gl.getShaderInfoLog(vertShader));
     
-    if (!gl.getShaderParameter(fragShader, gl.COMPILE_STATUS)) {
-        console.error('Could not compile electric potential fragment shader!', gl.getShaderInfoLog(fragShader));
-        return false;
-    }
+    if (!gl.getShaderParameter(fragShader, gl.COMPILE_STATUS)) throw new Error('Could not compile electric potential fragment shader!', gl.getShaderInfoLog(fragShader));
 
     shaderProgram.program = gl.createProgram();
 
@@ -66,17 +50,11 @@ export function initShaders() {
     gl.attachShader(shaderProgram.program, fragShader);
     gl.linkProgram(shaderProgram.program);
 
-    if (!gl.getProgramParameter(shaderProgram.program, gl.LINK_STATUS)) {
-        console.error('Could not link electric potential program!', gl.getProgramInfoLog(shaderProgram.program));
-        return false;
-    }
+    if (!gl.getProgramParameter(shaderProgram.program, gl.LINK_STATUS)) throw new Error('Could not link electric potential program!', gl.getProgramInfoLog(shaderProgram.program));
 
     gl.validateProgram(shaderProgram.program);
 
-    if (!gl.getProgramParameter(shaderProgram.program, gl.VALIDATE_STATUS)) {
-        console.error('Error validating program!', gl.getProgramInfoLog(shaderProgram.program));
-        return false;
-    }
+    if (!gl.getProgramParameter(shaderProgram.program, gl.VALIDATE_STATUS)) throw new Error('Error validating program!', gl.getProgramInfoLog(shaderProgram.program));
 
     let vertBuffer = gl.createBuffer();
 

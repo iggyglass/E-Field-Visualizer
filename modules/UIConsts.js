@@ -9,6 +9,9 @@ export const glCanvas = document.getElementById('gl-canvas');
 export const fieldCanvas = document.getElementById('field-canvas');
 
 // UI Elements
+export const errorDiv = document.getElementById('error-div');
+export const errorText = document.getElementById('error-text');
+
 export const slider = document.getElementById('charge-slider');
 export const sliderValueText = document.getElementById('charge-value');
 export const voltageValueText = document.getElementById('voltage-value');

@@ -12,19 +12,14 @@ let shaderSources = {
 };
 
 export function loadShaders() {
-    if (!window.XMLHttpRequest) {
-        console.error('Ajax/XMLHttpRequest required to load shaders!');
-        return false;
-    }
+    if (!window.XMLHttpRequest) throw new Error('Ajax/XMLHttpRequest required to load shaders!');
 
     let shaders = [];
     let xhr = new XMLHttpRequest();
 
-    if (!loadFiles(xhr, shaderPaths, shaders)) return false;
-
+    loadFiles(xhr, shaderPaths, shaders)
     shaderSources.fragSource = replaceText(shaders[0], shaderReplacements);
     shaderSources.vertSource = shaders[1];
-    return true;
 }
 
 export function getShaders() {
@@ -33,29 +28,26 @@ export function getShaders() {
 
 function replaceText(text, replacements) {
     return text.replace(/\$\{\w+\}/g, (match) => {
-        let innerText = match.substring(2, match.length - 1);
-        return replacements.hasOwnProperty(innerText) ? replacements[innerText] : innerText;
+        let token = match.substring(2, match.length - 1);
+        return replacements.hasOwnProperty(token) ? replacements[token] : token;
     });
 }
 
 function loadFiles(xhr, paths, contents) {
-    if (paths.length == 0) return true;
-
-    let success = true;
+    if (paths.length == 0) return;
 
     xhr.open('GET', paths[0], false);
     xhr.onreadystatechange = () => {
         if (xhr.readyState == XMLHttpRequest.DONE) {
-            if (xhr.status != 200) success = false;
+            if (xhr.status != 200) throw new Error(`Unable to load file: ${paths[0]}!`);
 
             contents.push(xhr.responseText);
             paths.shift();
-            success = loadFiles(xhr, paths, contents);
+            loadFiles(xhr, paths, contents);
         }
     };
 
     xhr.send();
-    return success;
 }
 
 function formatGlslFloat(num) {
