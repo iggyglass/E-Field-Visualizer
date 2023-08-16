@@ -9,12 +9,18 @@ body {
     position: relative;
     left: 5%;
     width: 75%;
+    margin-bottom: 5%;
 }
 
 a, a:visited {
     color: rgb(151, 205, 241);
-    text-decoration-line: underline;
-    text-decoration-thickness: 0.5px;
+    text-decoration-line: none;
+    transition: color 0.15s;
+    position: relative;
+}
+
+a:hover {
+    color: rgb(151, 180, 241);
 }
 
 h1 {
@@ -26,7 +32,7 @@ h1 {
 }
 
 h1, h2, h3, h4 {
-    font-weight: 500;
+    font-weight: 700;
 }
 
 li {
