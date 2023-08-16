@@ -6,11 +6,12 @@
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100;400&display=swap" rel="stylesheet">
-        <link rel="stylesheet" href="gridbg.css">
+        <link rel="stylesheet" href="bgstyles.css">
         <link rel="stylesheet" href="styles.css">
         <meta charset="UTF-8">
     </head>
-    <body onload="init()" class="grid-bg">
+    <body onload="init()">
+        <div id="bg-div" class="color-bg"></div>
         <div id="error-div" class="grid-bg">
             <div id="error-info">
                 <h1 id="error-title">An Error Occurred.</h1>
@@ -50,6 +51,10 @@
         </div>
         <canvas id="gl-canvas" style="position:absolute;top:0px;left:0px;"></canvas>
         <canvas id="field-canvas" style="position:absolute;top:0px;left:0px"></canvas>
+        <script>
+            let errorDiv = document.getElementById('error-div');
+            errorDiv.style.zIndex = -100;
+        </script>
         <script src="modules/SimConsts.js" type="module"></script>
         <script src="modules/ChargePool.js" type="module"></script>
         <script src="modules/Vec2.js" type="module"></script>

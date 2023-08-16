@@ -22,7 +22,7 @@ var leftMouseStatus = {
 };
 
 function init() {
-    initErrorHandling();
+    window.addEventListener('error', onError);
     GL.initShaders()
     initCanvas();
 
@@ -59,11 +59,6 @@ function initCanvas() {
     window.requestAnimationFrame(draw);
 }
 
-function initErrorHandling() {
-    errorDivSetEnabled(false);
-    window.addEventListener('error', onError);
-}
-
 function draw() {
     GL.renderField(posQueue);
     Canvas.renderFieldLines(posQueue);
@@ -76,7 +71,7 @@ function clearScreen() {
 
 function onError(event, source, line, col, error) {
     UI.errorText.innerHTML += `${event.message}<br>`;
-    errorDivSetEnabled(true);
+    UI.errorDiv.style.zIndex = 100;
 
     return false;
 }
@@ -160,10 +155,6 @@ function selectCharge(pos) {
     }
 
     return null;
-}
-
-function errorDivSetEnabled(enabled) {
-    UI.errorDiv.style.zIndex = enabled ? 100 : -100;
 }
 
 window.init = init;
