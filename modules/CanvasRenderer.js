@@ -23,7 +23,7 @@ export function renderFieldLines(charges) {
         for (let angle = 0; angle < Consts.fieldLineCount; angle++) {
             let radius = Consts.fieldLineChargeRadius * Math.abs(charges.array[i][2]);
             let pos = Vec2.fromPolar(radius, angle * (2 * Math.PI / Consts.fieldLineCount) + offset);
-            pos = fromGlslCoords(pos.add(charges.array[i]));
+            pos = pos.add(fromGlslCoords(Vec2.fromOther(charges.array[i])));
 
             ctx.beginPath();
             ctx.moveTo(pos.x, pos.y);
@@ -62,11 +62,9 @@ function toGlslCoords(pos) {
 }
 
 function insideCharge(pos, charges) {
-    pos = toGlslCoords(pos.clone());
-
     for (let i = 0; i < charges.length(); i++) {
         let radius = Consts.fieldLineChargeRadius * Math.abs(charges.array[i][2]);
-        if (pos.distFrom(charges.array[i]) < radius) return true;
+        if (pos.distFrom(fromGlslCoords(Vec2.fromOther(charges.array[i]))) < radius) return true;
     }
 
     return false;
